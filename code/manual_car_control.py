@@ -5,8 +5,8 @@ car_controller = car_controlls.Car_Controller(33, 32)
 
 while True:
     if keyboard.is_pressed("a"):
-        car_controller.set_steering(-0.5)
+        car_controller.set_steering(-1)
     elif keyboard.is_pressed("d"):
-        car_controller.set_steering(0.5)
+        car_controller.set_steering(1)
     else:
         car_controller.set_steering(0)
