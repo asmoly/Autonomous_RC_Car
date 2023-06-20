@@ -1,7 +1,7 @@
 import keyboard
-import car_controlls
+import Car_Controller
 
-car_controller = car_controlls.Car_Controller(33, 32)
+car_controller = Car_Controller.Car_Controller(33, 32)
 
 while True:
     if keyboard.is_pressed("a"):
