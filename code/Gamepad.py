@@ -21,11 +21,6 @@ class Gamepad:
         self.x = 0
         self.y = 0
 
-        self.dpad_up = 0
-        self.dpad_down = 0
-        self.dpad_right = 0
-        self.dpad_left = 0
-
         self.monitor_thread = threading.Thread(target=self.monitor_values, args=(), daemon=True)
         self.monitor_thread.start()
 
@@ -62,14 +57,6 @@ class Gamepad:
                     self.x = event.state #previously switched with Y
                 elif event.code == 'BTN_EAST':
                     self.b = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY1':
-                    self.dpad_left = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY2':
-                    self.dpad_right = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY3':
-                    self.dpad_up = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY4':
-                    self.dpad_down = event.state
     
     def __del__(self):
         self.stop_monitor_loop()
