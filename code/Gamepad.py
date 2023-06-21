@@ -24,14 +24,8 @@ class Gamepad:
         self.monitor_thread = threading.Thread(target=self.monitor_values, args=(), daemon=True)
         self.monitor_thread.start()
 
-        self.thread_end = 0
-        self.thread_end = threading.Event()
-
-    def stop_monitor_loop(self):
-        self.thread_end.set()
-
     def monitor_values(self):
-        while self.thread_end.is_set() == False:
+        while True:
             events = get_gamepad()
             for event in events:
                 if event.code == 'ABS_Y':
@@ -58,6 +52,3 @@ class Gamepad:
                     self.x = event.state #previously switched with Y
                 elif event.code == 'BTN_EAST':
                     self.b = event.state
-    
-    def __del__(self):
-        self.stop_monitor_loop()
