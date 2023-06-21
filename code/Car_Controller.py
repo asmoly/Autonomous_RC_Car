@@ -31,9 +31,8 @@ class Car_Controller:
         steering_value = Car_Controller.STEERING_CENTER + ((Car_Controller.STEERING_RANGE[1] - Car_Controller.STEERING_RANGE[0])/2)*steering
         self.servo.ChangeDutyCycle(steering_value)
 
-    def reset(self):
+    def __del__(self):
         self.servo.ChangeDutyCycle(Car_Controller.STEERING_CENTER)
         self.motor.ChangeDutyCycle(0)
 
-    def __del__(self):
-        self.reset()
+        GPIO.cleanup()
