@@ -24,6 +24,7 @@ class Gamepad:
         self.monitor_thread = threading.Thread(target=self.monitor_values, args=(), daemon=True)
         self.monitor_thread.start()
 
+        self.thread_end = 0
         self.thread_end = threading.Event()
 
     def stop_monitor_loop(self):
