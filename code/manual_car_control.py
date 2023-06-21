@@ -8,5 +8,5 @@ while gamepad.a == 0:
     car_controller.set_speed(gamepad.right_trigger)
     car_controller.set_steering(gamepad.left_joystick[0])
 
-del(gamepad)
-del(car_controller)
+#del(gamepad)
+#del(car_controller)
