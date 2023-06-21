@@ -1,12 +1,11 @@
 import keyboard
-import Car_Controller
 
-car_controller = Car_Controller.Car_Controller(33, 32)
+from Car_Controller import Car_Controller
+from Gamepad import Gamepad
 
-while True:
-    if keyboard.is_pressed("a"):
-        car_controller.set_steering(-1)
-    elif keyboard.is_pressed("d"):
-        car_controller.set_steering(1)
-    else:
-        car_controller.set_steering(0)
+car_controller = Car_Controller(33, 32)
+gamepad = Gamepad()
+
+while gamepad.a == 0:
+    car_controller.set_speed(gamepad.right_trigger)
+    car_controller.set_steering(gamepad.left_joystick[0])
