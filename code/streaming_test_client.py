@@ -3,41 +3,35 @@ import socket
 import pickle
 import numpy as np
 
-X_PIECES = 12
-Y_PIECES = 12
+MAX_SIZE = 65000
 
 UDP_IP = "0.0.0.0"
 UDP_PORT = 5006
 
-pieces = []
-for i in range (0, X_PIECES*Y_PIECES):
-    pieces.append(0)
-
-def rebuild_image(x_pieces, y_pieces, pieces):
-    x_size = pieces[0].shape[1]
-    y_size = pieces[0].shape[0]
-    
-    image_shape = [pieces[0].shape[0]*y_pieces, pieces[0].shape[1]*x_pieces]
-    image_array = np.zeros(shape=(image_shape[0], image_shape[1], 4))
-
-    counter = 0
-    for y in range (0, y_pieces):
-        for x in range (0, x_pieces):
-            image_array[y*y_size:y*y_size + y_size, x*x_size:x*x_size + x_size, :] = pieces[counter]
-            counter += 1
-
-    return image_array
-
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((UDP_IP, UDP_PORT))
 
+buffer = 0
+
 while True:
-    piece_as_bytes, addr = sock.recvfrom(10000)
-    piece = pickle.loads(piece_as_bytes)
-
-    pieces[piece[1]] = piece[0]
-
-    image_as_array = rebuild_image(X_PIECES, Y_PIECES, pieces)
+    data, addr = sock.recvfrom(MAX_SIZE)
     
-    cv2.imshow("Stream", image_as_array)
+    image_info = pickle.loads(data)
+    number_of_packs = image_info["packs"]
+    image_dimensions = [image_info["width"], image_info["height"]]
+
+    for i in range (0, number_of_packs):
+        data, addr = sock.recvfrom(MAX_SIZE)
+
+        if i == 0:
+            buffer = data
+        else:
+            buffer += data
+
+    compressed_image = np.frombuffer(buffer, dtype=np.uint8)
+    compressed_image = np.reshape(image.shape[0], 1)
+
+    image = cv2.imdecode(compressed_image, cv2.IMREAD_COLOR)
+
+    cv2.imshow("Stream", image)
     cv2.waitKey(1)

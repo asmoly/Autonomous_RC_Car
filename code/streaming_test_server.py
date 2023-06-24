@@ -9,20 +9,7 @@ import numpy
 UDP_IP = "192.168.1.4"
 UDP_PORT = 5006
 
-X_PIECES = 12
-Y_PIECES = 12
-
-def split_image(x_pieces, y_pieces, image_array):
-    pieces = []
-
-    x_size = int(image_array.shape[1]/x_pieces)
-    y_size = int(image_array.shape[0]/y_pieces)
-
-    for y in range (0, y_pieces):
-        for x in range (0, x_pieces):
-            pieces.append(image_array[y_size*y:y_size*y + y_size, x_size*x:x_size*x + x_size, :])
-
-    return pieces
+MAX_SIZE = 65000
 
 def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -45,19 +32,24 @@ def main():
     while keyboard.is_pressed("a") == False:
         if zed.grab(sl.RuntimeParameters()) == sl.ERROR_CODE.SUCCESS:
             zed.retrieve_image(image, sl.VIEW.LEFT)
-
             image_as_array = image.get_data()
-            image_pieces = split_image(X_PIECES, Y_PIECES, image_as_array)
-            
-            for i in range (0, len(image_pieces)):
-                piece = [image_pieces[i], i]
-                piece_as_bytes = pickle.dumps(piece)
-                sock.sendto(piece_as_bytes, (UDP_IP, UDP_PORT))
 
-            print("Sent image")
+            compressed_image = cv2.imencode(".jpg", image_as_array)[1]
+            compressed_image_bytes = compressed_image.tobytes()
+            number_of_packs = int(len(compressed_image_bytes)/MAX_SIZE) + 1
 
-            #cv2.imshow("Video", image_as_array)
-            #cv2.waitKey(1)
+            image_info = {"packs":number_of_packs, "height":image.get_height(), "width":image.get_width()}
+            image_info_as_bytes = pickle.dumps(image_info)
+            sock.sendto(image_info_as_bytes, (UDP_IP, UDP_PORT))
+
+            counter = 0
+            for i in range (0, number_of_packs):
+                data_to_send = compressed_image_bytes[counter:counter + MAX_SIZE]
+                counter += MAX_SIZE
+
+                sock.sendto(data_to_send, (UDP_IP, UDP_PORT))
+
+            print(f"Sent image with {number_of_packs} packs")
         else:
             print("Failed to grab image")
 
