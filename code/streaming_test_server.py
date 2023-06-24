@@ -1,10 +1,28 @@
+import sys
 import pyzed.sl as sl
 import socket
 import pickle
 import keyboard
+import cv2
+import numpy
 
-UDP_IP = "10.42.0.120"
-UDP_PORT = 5005
+UDP_IP = "192.168.1.4"
+UDP_PORT = 5006
+
+X_PIECES = 12
+Y_PIECES = 12
+
+def split_image(x_pieces, y_pieces, image_array):
+    pieces = []
+
+    x_size = int(image_array.shape[1]/x_pieces)
+    y_size = int(image_array.shape[0]/y_pieces)
+
+    for y in range (0, y_pieces):
+        for x in range (0, x_pieces):
+            pieces.append(image_array[y_size*y:y_size*y + y_size, x_size*x:x_size*x + x_size, :])
+
+    return pieces
 
 def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -17,7 +35,8 @@ def main():
 
     err = zed.open(init_params)
     if err != sl.ERROR_CODE.SUCCESS:
-        exit(1)
+        print("Camera failed to open")
+        sys.exit()
 
     print("Opened Camera")
 
@@ -28,9 +47,20 @@ def main():
             zed.retrieve_image(image, sl.VIEW.LEFT)
 
             image_as_array = image.get_data()
-            image_as_bytes = pickle.dumps(image_as_array)
+            image_pieces = split_image(X_PIECES, Y_PIECES, image_as_array)
+            
+            for i in range (0, len(image_pieces)):
+                piece = [image_pieces[i], i]
+                piece_as_bytes = pickle.dumps(piece)
+                sock.sendto(piece_as_bytes, (UDP_IP, UDP_PORT))
 
-            sock.sendto(image_as_bytes, (UDP_IP, UDP_PORT))
+            print("Sent image")
+
+            #cv2.imshow("Video", image_as_array)
+            #cv2.waitKey(1)
+        else:
+            print("Failed to grab image")
+
 
     zed.close()
     print("Closed Camera")
