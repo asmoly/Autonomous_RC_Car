@@ -6,6 +6,9 @@ import numpy as np
 X_PIECES = 12
 Y_PIECES = 12
 
+UDP_IP = "0.0.0.0"
+UDP_PORT = 5006
+
 pieces = []
 for i in range (0, X_PIECES*Y_PIECES):
     pieces.append(0)
@@ -24,9 +27,6 @@ def rebuild_image(x_pieces, y_pieces, pieces):
             counter += 1
 
     return image_array
-
-UDP_IP = "0.0.0.0"
-UDP_PORT = 5005
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((UDP_IP, UDP_PORT))
