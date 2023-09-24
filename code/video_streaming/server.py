@@ -1,21 +1,17 @@
 import cv2
-from keyboard import is_pressed
-from vidgear.gears import VideoGear, NetGear
+import numpy as np
+import socket
+import sys
+import pickle
+import struct
 
-server = NetGear()
+cap = cv2.VideoCapture(0)
 
-camera_video = cv2.VideoCapture(0)
+clientsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+clientsocket.connect(('localhost', 8089))
 
 while True:
-    ret, frame = camera_video.read()
+    ret,frame=cap.read()
 
-    server.send(frame)
-
-    cv2.imshow("Video Feed", frame)
-    cv2.waitKey(1)
-
-    if is_pressed("c"):
-        break
-
-cv2.destroyAllWindows()
-server.close()
+    data = pickle.dumps(frame)
+    clientsocket.sendall(struct.pack("H", len(data))+data)

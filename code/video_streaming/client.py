@@ -1,19 +1,39 @@
+import socket
+import sys
 import cv2
-from keyboard import is_pressed
-from vidgear.gears import NetGear
+import pickle
+import numpy as np
+import struct
 
-client = NetGear(receive_mode = True)
+HOST = '192.168.68.60'
+PORT = 8089
+
+socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+print('Socket created')
+
+socket.bind((HOST,PORT))
+print('Socket bind complete')
+socket.listen(10)
+print('Socket now listening')
+
+conn, addr = socket.accept()
+
+data = ""
+payload_size = struct.calcsize("H") 
 
 while True:
-    frame = client.recv()
+    while len(data) < payload_size:
+        data += conn.recv(4096)
 
-    if frame is None:
-        break
+    packed_msg_size = data[:payload_size]
+    data = data[payload_size:]
+    msg_size = struct.unpack("H", packed_msg_size)[0]
+    while len(data) < msg_size:
+        data += conn.recv(4096)
+    frame_data = data[:msg_size]
+    data = data[msg_size:]
+    ###
 
-    cv2.imshow("Video Stream", frame)
+    frame=pickle.loads(frame_data)
 
-    if is_pressed("c"):
-        break
-
-cv2.destroyAllWindows()
-client.close()
+    cv2.imshow('frame',frame)
