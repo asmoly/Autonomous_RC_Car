@@ -47,9 +47,9 @@ class Gamepad:
                 elif event.code == 'BTN_SOUTH':
                     self.a = event.state
                 elif event.code == 'BTN_NORTH':
-                    self.y = event.state #previously switched with X
+                    self.y = event.state
                 elif event.code == 'BTN_WEST':
-                    self.x = event.state #previously switched with Y
+                    self.x = event.state
                 elif event.code == 'BTN_EAST':
                     self.b = event.state
 
