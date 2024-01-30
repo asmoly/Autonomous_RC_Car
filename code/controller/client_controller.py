@@ -2,7 +2,7 @@ import socket
 import pickle
 from Car_Controller import Car_Controller
 
-PORT = 9999
+PORT = 9998
 
 car_controller = Car_Controller(33, 32)
 
@@ -11,7 +11,7 @@ socket.setblocking(False)
 socket.bind(("", PORT))
 
 missing_data = 0
-while missing_data < 10:
+while missing_data < 100000:
     try:
         data, address = socket.recvfrom(1024)
         data = pickle.loads(data)
