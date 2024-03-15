@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 
 class Car_Controller:
     SERVO_FREQUENCY = 50
-    MOTOR_FREQUENCY = 1000
+    MOTOR_FREQUENCY = 490
 
     # Duty Cycle
     STEERING_RANGE = (5, 10)
