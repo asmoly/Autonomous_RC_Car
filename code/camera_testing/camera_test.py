@@ -23,16 +23,14 @@ def main():
 
     image = sl.Mat()
     depth = sl.Mat()
-    depth_image = sl.Mat()
+    normalized_depth = sl.Mat()
 
     while keyboard.is_pressed("a") == False:
         if zed.grab(sl.RuntimeParameters()) == sl.ERROR_CODE.SUCCESS:
             zed.retrieve_image(image, sl.VIEW.LEFT)
 
             image_as_array = image.get_data()
-            image_as_array = cv2.putText(image_as_array, f"{image.get_width()}x{image.get_height()}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
 
-            print(sys.getsizeof(image_as_array), image_as_array.shape)
 
             # zed.retrieve_measure(depth, sl.MEASURE.DEPTH)
             # depth_as_array = depth.get_data()
