@@ -1,38 +1,12 @@
-import RPi.GPIO as GPIO
+import serial
 
 class Car_Controller:
-    SERVO_FREQUENCY = 50
-    MOTOR_FREQUENCY = 490
+    def __init__(self, port="COM3", baudrate=115200) -> None:
+        self.arduino = serial.Serial(port=port, baudrate=baudrate) 
 
-    # Duty Cycle
-    STEERING_RANGE = (5, 10)
-
-    # Duty Cycle to center wheels
-    STEERING_CENTER = (STEERING_RANGE[1] - STEERING_RANGE[0])/2 + STEERING_RANGE[0]
-
-    def __init__(self, steering_pin, motor_pin) -> None:
-        GPIO.setmode(GPIO.BOARD)
-
-        GPIO.setup(steering_pin, GPIO.OUT)
-        GPIO.setup(motor_pin, GPIO.OUT)
-
-        self.servo = GPIO.PWM(steering_pin, Car_Controller.SERVO_FREQUENCY)
-        self.motor = GPIO.PWM(motor_pin, Car_Controller.MOTOR_FREQUENCY)
-
-        self.servo.start(Car_Controller.STEERING_CENTER)
-        self.motor.start(0)
-
-    # Speed is from 0 to 1
-    def set_speed(self, speed):
-        self.motor.ChangeDutyCycle(speed*100)
-
-    # Steering is from -1 to 1
-    def set_steering(self, steering):
-        steering_value = Car_Controller.STEERING_CENTER + ((Car_Controller.STEERING_RANGE[1] - Car_Controller.STEERING_RANGE[0])/2)*steering
-        self.servo.ChangeDutyCycle(steering_value)
-
-    def __del__(self):
-        self.servo.ChangeDutyCycle(Car_Controller.STEERING_CENTER)
-        self.motor.ChangeDutyCycle(0)
-
-        GPIO.cleanup()
+    def set_speed_and_steering(self, target_speed, target_steering): # speed is value from 0 - 1, steering is value from -1 - 1
+        target_speed_translated = int(target_speed*100) # convert to sclae of 0 - 100 for arduino
+        target_steering_translated = int(target_steering*50 + 50) # convert to scale of 0 - 100 with 50 being center for arduino
+        
+        self.arduino.write(f"{target_speed_translated},{target_steering_translated}\n".encode()) 
+        self.arduino.flush()
