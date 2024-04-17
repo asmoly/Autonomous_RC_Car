@@ -16,6 +16,6 @@ while gamepad.a == 0:
     joystick = int(gamepad.left_joystick[0]*50 + 50)
     print(trigger, joystick)
 
-    socket.sendto(bytes(f"{trigger},{joystick}"), (RECIPIENT_ADDRESS, PORT))
+    socket.sendto(bytes(f"{trigger},{joystick}", "utf-8"), (RECIPIENT_ADDRESS, PORT))
 
 socket.close()
