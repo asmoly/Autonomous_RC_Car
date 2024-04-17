@@ -14,7 +14,8 @@ missing_data = 0
 while missing_data < 100000:
     try:
         data, address = socket.recvfrom(1024)
-        data = pickle.loads(data)
+        data = data.decode("utf-8")
+        #data = pickle.loads(data)
 
         car_controller.set_speed_and_steering(data[1], data[0])
 
