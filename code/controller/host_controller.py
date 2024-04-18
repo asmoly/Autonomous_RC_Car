@@ -2,7 +2,7 @@ import pickle
 import socket
 from Gamepad import Gamepad
 
-PORT = 9998
+PORT = 6000
 RECIPIENT_ADDRESS = "10.42.0.1"
 
 gamepad = Gamepad()

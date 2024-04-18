@@ -2,7 +2,7 @@ import socket
 import pickle
 import Car_Controller
 
-PORT = 9998
+PORT = 6000
 
 car_controller = Car_Controller.Car_Controller()
 
