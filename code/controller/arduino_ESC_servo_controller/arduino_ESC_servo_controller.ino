@@ -12,7 +12,7 @@ float accelerator = 0.0;
 int steering = 0;
 
 int no_signal_count = 0;
-int no_signal_threshhold = 50;
+int no_signal_threshhold = 10000;
 
 void set_target_speed(float target_speed)
 {
