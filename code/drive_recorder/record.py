@@ -68,7 +68,7 @@ def generate_frames():
     threading.Thread(target=car_controls).start()
     
     image_counter = 0
-    while keyboard.is_pressed("a") == False:
+    while True:
         if cam.grab(sl.RuntimeParameters()) == sl.ERROR_CODE.SUCCESS:
             # Normal view
             cam.retrieve_image(image, sl.VIEW.LEFT)
