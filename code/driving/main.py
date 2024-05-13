@@ -20,13 +20,16 @@ IMAGE_WIDTH = 672
 IMAGE_HEIGHT = 376
 CAMERA_VGA_FOCAL_LENGTH = 367
 
+CONE_HEIGHT = 0.175 # meters
+NON_VISIBLE_CONE_OFFSET = 0.4 # meters
+
 CONE_MIN_BLOB_AREA = 300 # in pixels
 CONE_MAX_HEIGHT_PERCENT = 1.0 # in percents
 LEFT_MARGIN_POINT = (0, 0)
 RIGHT_MARGIN_POINT = (IMAGE_WIDTH - 1, 0)
 
-P_G = 0.1   # PID's P term gain
-I_G = 0.2   # PID's I term gain
+P_G = 0.5   # PID's P term gain
+I_G = 0.15   # PID's I term gain
 
 streaming_app = Flask(__name__)
 
@@ -68,7 +71,9 @@ def process_frames():
             result_mask = torch.argmax(model_output, dim=0).cpu().detach().numpy().astype(np.uint8)
             result_mask = cv2.resize(result_mask, (0,0), fx=2.0, fy=2.0, interpolation=cv2.INTER_NEAREST)   # upscale 2x
 
-            closest_cones = [[0, LEFT_MARGIN_POINT[0], LEFT_MARGIN_POINT[1], 0, 0], [0, RIGHT_MARGIN_POINT[0], RIGHT_MARGIN_POINT[1], 0, 0]] # green, orange
+            #closest_cones = [[0, LEFT_MARGIN_POINT[0], LEFT_MARGIN_POINT[1], 0, 0], [0, RIGHT_MARGIN_POINT[0], RIGHT_MARGIN_POINT[1], 0, 0]] # green, orange
+            closest_cones = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
+
 
             contours, _ = cv2.findContours(result_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             for i in range(0, len(contours)):
@@ -83,8 +88,31 @@ def process_frames():
             # Compute center point between nearest cones to drive to and then the heading angle to that point
             left_cone_center = ((closest_cones[0][1] + closest_cones[0][3]/2), (closest_cones[0][2] + closest_cones[0][4]/2))
             right_cone_center = ((closest_cones[1][1] + closest_cones[1][3]/2), (closest_cones[1][2] + closest_cones[1][4]/2))
-            center_point = [(left_cone_center[0] + right_cone_center[0])/2, (left_cone_center[1] + right_cone_center[1])/2]
-            angle_to_center_point = math.atan2(center_point[0] - IMAGE_WIDTH/2, CAMERA_VGA_FOCAL_LENGTH)
+
+            center_point = [0, 0]
+            angle_to_center_point = 0
+
+            if closest_cones[0] == [0, 0, 0, 0, 0] and closest_cones[1] == [0, 0, 0, 0, 0]: # no cones visible
+                center_point = [IMAGE_WIDTH/2, IMAGE_HEIGHT/2]
+            elif closest_cones[0] == [0, 0, 0, 0, 0]: # green cone not visible
+                height_of_visible_cone = closest_cones[1][4] # pixels
+                distance_to_visible_cone = (CONE_HEIGHT/height_of_visible_cone)*CAMERA_VGA_FOCAL_LENGTH # meters
+                cone_offset_pixels = (CAMERA_VGA_FOCAL_LENGTH/distance_to_visible_cone)*NON_VISIBLE_CONE_OFFSET
+                center_point = [right_cone_center[0] - cone_offset_pixels, right_cone_center[1]]
+                angle_to_center_point = math.atan2(center_point[0] - IMAGE_WIDTH/2, CAMERA_VGA_FOCAL_LENGTH)
+            elif closest_cones[1] == [0, 0, 0, 0, 0]: # orange cone not visible
+                height_of_visible_cone = closest_cones[0][4] # pixels
+                distance_to_visible_cone = (CONE_HEIGHT/height_of_visible_cone)*CAMERA_VGA_FOCAL_LENGTH # meters
+                cone_offset_pixels = (CAMERA_VGA_FOCAL_LENGTH/distance_to_visible_cone)*NON_VISIBLE_CONE_OFFSET
+                center_point = [left_cone_center[0] + cone_offset_pixels, left_cone_center[1]]
+                angle_to_center_point = math.atan2(center_point[0] - IMAGE_WIDTH/2, CAMERA_VGA_FOCAL_LENGTH)
+            else: # both cones visible
+                angle_to_left_cone = math.atan2(left_cone_center[0] - IMAGE_WIDTH/2, CAMERA_VGA_FOCAL_LENGTH)
+                angle_to_right_cone = math.atan2(right_cone_center[0] - IMAGE_WIDTH/2, CAMERA_VGA_FOCAL_LENGTH)
+                angle_to_center_point = angle_to_left_cone + (angle_to_right_cone - angle_to_left_cone)/2
+                center_point = [(left_cone_center[0] + right_cone_center[0])/2, (left_cone_center[1] + right_cone_center[1])/2]
+
+            #angle_to_center_point = math.atan2(center_point[0] - IMAGE_WIDTH/2, CAMERA_VGA_FOCAL_LENGTH)
 
             # Calculate steering and send it to steering servo
             steering = pi_controller.compute_control(angle_to_center_point)
@@ -112,4 +140,4 @@ def video_feed():
     return Response(process_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == "__main__":
-    streaming_app.run(host='0.0.0.0', port=5000)
+    streaming_app.run(host='0.0.0.0', port=5001)
