@@ -1,4 +1,5 @@
 import sys
+import time
 import math
 import cv2
 import numpy as np
@@ -21,20 +22,30 @@ IMAGE_HEIGHT = 376
 CAMERA_VGA_FOCAL_LENGTH = 367
 
 CONE_HEIGHT = 0.175 # meters
-NON_VISIBLE_CONE_OFFSET = 0.4 # meters
+NON_VISIBLE_CONE_OFFSET = 0.5 # meters
+MAX_ANGLE_TO_CONE = 45
 
 CONE_MIN_BLOB_AREA = 300 # in pixels
 CONE_MAX_HEIGHT_PERCENT = 1.0 # in percents
 LEFT_MARGIN_POINT = (0, 0)
 RIGHT_MARGIN_POINT = (IMAGE_WIDTH - 1, 0)
 
-P_G = 0.5   # PID's P term gain
-I_G = 0.15   # PID's I term gain
+STEERING_PROPORTIONAL_GAIN = 0.9   # PID's P term gain
+STEERING_INTEGRAL_GAIN = 0.1   # PID's I term gain
+STEERING_TRIM = 0.0 # from -1 - 1
+
+SPEED_PROPORTIONAL_GAIN = 0.2
+SPEED_INTEGRAL_GAIN = 0.05
+
+SPEED_MIN = 0.65
+SPEED_MAX = 0.8
+SPEED_MULTIPLYER = 2
 
 streaming_app = Flask(__name__)
 
 car_controller = Car_Controller.Car_Controller()
-pi_controller = PI_Controller.PI(P_G, I_G)
+steering_pi_controller = PI_Controller.PI(STEERING_PROPORTIONAL_GAIN, STEERING_INTEGRAL_GAIN, buffer_length=10)
+speed_pi_controller = PI_Controller.PI(SPEED_PROPORTIONAL_GAIN, SPEED_INTEGRAL_GAIN, buffer_length=15)
 
 camera = sl.Camera()
 
@@ -54,9 +65,17 @@ model = load_model("conenet_30.pt").to(device)
 
 frame = sl.Mat()
 
-def process_frames():
+def angle_to_speed(angle):
+    proccessed_angle = -angle + 1
+    return proccessed_angle
 
+def process_frames():
+    prev_time = time.time()
     while True:
+        current_time = time.time()
+        # print(int((current_time - prev_time)*1000))
+        prev_time = current_time
+
         if camera.grab(sl.RuntimeParameters()) == sl.ERROR_CODE.SUCCESS:
             camera.retrieve_image(frame, sl.VIEW.LEFT)
         
@@ -111,18 +130,21 @@ def process_frames():
                 angle_to_right_cone = math.atan2(right_cone_center[0] - IMAGE_WIDTH/2, CAMERA_VGA_FOCAL_LENGTH)
                 angle_to_center_point = angle_to_left_cone + (angle_to_right_cone - angle_to_left_cone)/2
                 center_point = [(left_cone_center[0] + right_cone_center[0])/2, (left_cone_center[1] + right_cone_center[1])/2]
+                cv2.line(frame_as_array, (int(left_cone_center[0]), int(left_cone_center[1])), (int(right_cone_center[0]), int(right_cone_center[1])), (0, 0, 255), 2)
 
             #angle_to_center_point = math.atan2(center_point[0] - IMAGE_WIDTH/2, CAMERA_VGA_FOCAL_LENGTH)
 
             # Calculate steering and send it to steering servo
-            steering = pi_controller.compute_control(angle_to_center_point)
-            steering = clamp(steering, -1.0, 1.0)*-1.0
-            #print(steering)
-            car_controller.set_speed_and_steering(1, steering, translate_values=True)
+            steering = steering_pi_controller.compute_control(angle_to_center_point)
+            steering = clamp(steering + STEERING_TRIM, -1.0 + STEERING_TRIM, 1.0 + STEERING_TRIM)*-1.0
+            
+            speed = speed_pi_controller.compute_control(angle_to_speed(abs(angle_to_center_point/(MAX_ANGLE_TO_CONE*math.pi/180.0))))
+            speed = clamp(speed, SPEED_MIN, SPEED_MAX)/SPEED_MULTIPLYER
+
+            car_controller.set_speed_and_steering(speed, steering, translate_values=True)
 
             cv2.rectangle(frame_as_array, (closest_cones[0][1], closest_cones[0][2]), (closest_cones[0][1] + closest_cones[0][3], closest_cones[0][2] + closest_cones[0][4]), (0, 0, 255), 2)
             cv2.rectangle(frame_as_array, (closest_cones[1][1], closest_cones[1][2]), (closest_cones[1][1] + closest_cones[1][3], closest_cones[1][2] + closest_cones[1][4]), (0, 0, 255), 2)
-            cv2.line(frame_as_array, (int(left_cone_center[0]), int(left_cone_center[1])), (int(right_cone_center[0]), int(right_cone_center[1])), (0, 0, 255), 2)
             cv2.line(frame_as_array, (int(IMAGE_WIDTH/2), 0), (int(IMAGE_WIDTH/2), 375), (0, 255, 0), 2)
             cv2.circle(frame_as_array, (int(center_point[0]), int(center_point[1])), 2, (0, 255, 0), 3)
 

@@ -1,8 +1,11 @@
 class PI:
-    def __init__(self, p_gain, i_gain) -> None:
+    def __init__(self, p_gain, i_gain, buffer_length=30) -> None:
         self.p_gain = p_gain
         self.i_gain = i_gain
-        self.errors = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.errors = []
+
+        for i in range (0, buffer_length):
+            self.errors.append(0)
 
     def compute_control(self, error):
         self.errors.pop(0)
