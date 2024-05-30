@@ -18,3 +18,9 @@ These are the components and steps I used to build the platform:
 * Both the servo and motor should be connected to 5v and ground on the Arduino, the third wire on the motor should be connected to pin 9, and the third pin on the servo should be connected to pin 10.
 * Finally for the arduino to work upload the file `code/controller/arduino_ESC_servo_controller/arduino_ESC_servo_controller.ino` to the arduino.
 * To control the motor speed and steering from the Jetson download the file `code/controller/Car_Controller.py` to the Jetson. This is a class which contrains functions for controlling motor speed and servo angle
+
+## How it Works
+The files actually responsible for autonomously driving are located in `code/driving/` to run the self driving download all the files in that directory and run `main.py`. The file contains all of the parameters for the program like the PID controller values and cone height. THis is a detailed proccess of how the car works.
+### Convolutions Neural Network
+First the car uses a CNN to find the cones in the image. The CNN is able to differentiate between green and orange cones. All the code for the CNN is located in the directory `code/cone_detection`. The file `cone_finder_AI.py` is the program that trians the CNN. There are a few programs I used to create the dataset that are located in `code/dataset`. I made the dataset by recording video of me walking around with a camera. I then automatically pasted images of cones with another program into the video frames and used that as the training dataset. The file for the already trained CNN is in the `code/driving` directory.
+### Driving algorithm
