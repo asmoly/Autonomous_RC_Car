@@ -14,3 +14,6 @@ These are the components and steps I used to build the platform:
 * I also put an Arduino Uno on the platform. All the wire connections will be specified later.
 * I created another small raised platform that is put on top of the main platform. I then glued a [ZED Mini Stereo Camera](https://store.stereolabs.com/products/zed-mini) ont he small platform.
 * Both the camera and the Arduino should be connected to the Jetson via USB
+### Wiring
+* Both the servo and motor should be connected to 5v and ground on the Arduino, the third wire on the motor should be connected to pin 9, and the third pin on the servo should be connected to pin 10.
+* Finally for the arduino to work upload the file "code/controller/arduino_ESC_servo_controller/arduino_ESC_servo_controller.ino" to the arduino.
