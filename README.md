@@ -17,3 +17,4 @@ These are the components and steps I used to build the platform:
 ### Wiring
 * Both the servo and motor should be connected to 5v and ground on the Arduino, the third wire on the motor should be connected to pin 9, and the third pin on the servo should be connected to pin 10.
 * Finally for the arduino to work upload the file `code/controller/arduino_ESC_servo_controller/arduino_ESC_servo_controller.ino` to the arduino.
+* To control the motor speed and steering from the Jetson download the file `code/controller/Car_Controller.py` to the Jetson. This is a class which contrains functions for controlling motor speed and servo angle
