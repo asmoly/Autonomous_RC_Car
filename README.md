@@ -31,4 +31,4 @@ The entire driving algorithm is located in the `main.py` file.
 * Finally it calculates the angle to the center point and uses two PI controllers (a PID controller but without the differential part) to calculate the necessary steering angle and speed to drive to that center point. The proportional and integral gains for both the PI controllers can be adjusted in `main.py`
 
 ## Demo Videos
-To see videos of this system in action go to the `demos/` directory
+To see videos of this system in action download the [demo videos](https://drive.google.com/file/d/1EFXXdTS90mtLiUYapqNxHuzPokW_0hlM/view?usp=drive_link)
