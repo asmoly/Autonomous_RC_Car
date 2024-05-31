@@ -22,5 +22,13 @@ These are the components and steps I used to build the platform:
 ## How it Works
 The files actually responsible for autonomously driving are located in `code/driving/` to run the self driving download all the files in that directory and run `main.py`. The file contains all of the parameters for the program like the PID controller values and cone height. THis is a detailed proccess of how the car works.
 ### Convolutions Neural Network
-First the car uses a CNN to find the cones in the image. The CNN is able to differentiate between green and orange cones. All the code for the CNN is located in the directory `code/cone_detection`. The file `cone_finder_AI.py` is the program that trians the CNN. There are a few programs I used to create the dataset that are located in `code/dataset`. I made the dataset by recording video of me walking around with a camera. I then automatically pasted images of cones with another program into the video frames and used that as the training dataset. The file for the already trained CNN is in the `code/driving` directory.
+First the car uses a CNN to find the cones in the image. The CNN is able to differentiate between green and orange cones. All the code for the CNN is located in the directory `code/cone_detection`. The file `cone_finder_AI.py` is the program that trians the CNN. There are a few programs I used to create the dataset that are located in `code/dataset`. I made the dataset by recording videos of me walking around with a camera. I then automatically pasted images of cones with another program into the video frames and used that as the training dataset. The file for the already trained CNN is in the `code/driving` directory.
 ### Driving algorithm
+The entire driving algorithm is located in the `main.py` file.
+* First it uses the CNN to detect all the cones. It then finds the closest green and orange cone using their mask areas. (In this algorithm the green cones should always be on the left and the orange cones should always be on the right)
+* After that it finds the center point between the two cones it found.
+* In case the camera can only see one cone (for example when the car is turning it doesn't see the inside cone but can still see the outside cone) it will calculate the distance to the outside cone using inverse projection and then use that distance to find a center point a certain distance from the outside cone. This distance can be specified wiht the `NON_VISIBLE_CONE_OFFSET` parameter in the `main.py` file.
+* Finally it calculates the angle to the center point and uses two PI controllers (a PID controller but without the differential part) to calculate the necessary steering angle and speed to drive to that center point. The proportional and integral gains for both the PI controllers can be adjusted in `main.py`
+
+## Demo Videos
+To see videos of this system in action go to the `demos/` directory
