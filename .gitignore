@@ -1,5 +1,12 @@
 /code/__pycache__/
-/code/cone_detection/dataset/
+/code/cone_detection/dataset/cone_masks/
+/code/cone_detection/dataset/cones/
+/code/cone_detection/dataset/images/
+/code/cone_detection/dataset/raw_images/
+/code/cone_detection/dataset/targets/
+/code/cone_detection/dataset/validation_images/
+/code/cone_detection/dataset/validation_raw_images/
+/code/cone_detection/dataset/validation_targets/
 /code/cone_detection/logs/
 /code/drive_debugger/sessions/
 /code/drive_debugger/sessions
