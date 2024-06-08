@@ -30,7 +30,7 @@ if err != sl.ERROR_CODE.SUCCESS:
     print("Camera failed to open")
     sys.exit()
 
-print(cam.getCameraInformation())
+#print(cam.getCameraInformation())
 print("Opened Camera")
 
 image = sl.Mat()
@@ -38,7 +38,7 @@ depth = sl.Mat()
 normalized_depth = sl.Mat()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model = load_model("logs/conenet_30.pt").to(device)
+model = load_model("logs/conenet_50.pt").to(device)
 
 while keyboard.is_pressed("a") == False:
     if cam.grab(sl.RuntimeParameters()) == sl.ERROR_CODE.SUCCESS:

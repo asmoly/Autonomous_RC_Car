@@ -33,7 +33,7 @@ def remap_target(entry):
 remap_target = np.vectorize(remap_target)
 
 dataTransformations = transforms.Compose([
-    transforms.ColorJitter(brightness=(0.3,1.0), contrast=(0.1,1.0), saturation=(0.1, 1.0)),
+    transforms.ColorJitter(brightness=(0.2,1.0)),
     transforms.ToTensor(),    
     #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
@@ -85,12 +85,16 @@ class FaceNet(nn.Module):
         self.enc_b1_conv2 = nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1)    
 
         self.enc_b2_conv1_ds = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
-        self.enc_b2_conv2 = nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1)       
+        self.enc_b2_conv2 = nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1)    
+        self.enc_b2_conv3 = nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1) 
+        self.enc_b2_conv4 = nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1)  
+        self.enc_b2_conv5 = nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1)     
 
         self.enc_latent_conv1 = nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1)
         self.dec_deconv1 = nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=1, output_padding=1)  
 
         self.dec_conv1 = nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1) 
+        self.dec_conv2 = nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1) 
         
         self.dec_out_conv1 = nn.Conv2d(16, 8, kernel_size=3, stride=1, padding=1)  
         self.dec_out_conv2 = nn.Conv2d(8, 3, kernel_size=3, stride=1, padding=1)  
@@ -100,9 +104,13 @@ class FaceNet(nn.Module):
                        self.enc_b1_conv2,
                        self.enc_b2_conv1_ds,
                        self.enc_b2_conv2,
+                       self.enc_b2_conv3,
+                       self.enc_b2_conv4,
+                       self.enc_b2_conv5,
                        self.enc_latent_conv1,
                        self.dec_deconv1,
                        self.dec_conv1,
+                       self.dec_conv2,
                        self.dec_out_conv1,
                        self.dec_out_conv2]
 
@@ -115,17 +123,23 @@ class FaceNet(nn.Module):
         skip_x_1 = x 
         x = F.elu(self.enc_b2_conv1_ds(x))
         x = F.elu(self.enc_b2_conv2(x))
+        x = F.elu(self.enc_b2_conv3(x)) 
+        x = F.elu(self.enc_b2_conv4(x))
+        x = F.elu(self.enc_b2_conv5(x))  
 
         x = F.elu(self.enc_latent_conv1(x))
 
         x = F.elu(self.dec_deconv1(x)) 
         x = F.elu(self.dec_conv1(x))
+        x = F.elu(self.dec_conv2(x))
         x = x + skip_x_1
 
         x = F.elu(self.dec_out_conv1(x))
         x = self.dec_out_conv2(x)
 
         #x = torch.squeeze(x) NOTE: not needed since we have 3 channels
+
+
         return x
 
 def load_model(path):
